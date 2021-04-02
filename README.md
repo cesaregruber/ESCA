@@ -5,7 +5,7 @@
 # INSTALLATION:
 0) unpack ESCAilluminaPKG.zip file wherever you prefer 
 
-# ANALYSIS
+# ANALYSIS:
 1) put ONLY Illumina paired-end files in fastq.gz in the "INPUTDATA" directory
 3) open a shell and go the path of "ESCAilluminaPKG"
 4) run the command:
