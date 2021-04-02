@@ -1,0 +1,122 @@
+#!/bin/bash
+
+RED='\033[0;31m' #rosso
+NC='\033[0m' # No Color
+
+
+
+cwd=$(pwd)
+now=$(date +%Y%m%d%H%M%S)
+
+binpath=$cwd"/bins"
+inpath=$cwd"/INPUTDATA"
+outpath=$cwd"/RESULTS_"$now
+
+refCov=$binpath/NC_045512.2.fasta
+
+cd $inpath
+
+array=(*.fastq.gz)
+
+dim=${#array[@]}
+
+mkdir $outpath
+
+# ###################################################################################################################################################################
+
+
+cd $outpath
+
+touch $outpath/SARScov2consensusALL.fa
+
+
+for (( i = 0; i < $dim  ; i=i+2 ));
+do 
+
+	mkdir $outpath/Sample${array[$i]%.fastq.gz}
+
+	cp $inpath/${array[$i]} $outpath/Sample${array[$i]%.fastq.gz}/
+	cp $inpath/${array[$i+1]} $outpath/Sample${array[$i]%.fastq.gz}/
+	
+	cd $outpath/Sample${array[$i]%.fastq.gz}/
+
+	echo -e "${RED} Analizing Sample${array[$i]%.fastq.gz}... ${NC}"
+
+	cp $refCov $outpath/Sample${array[$i]%.fastq.gz}/
+
+	mv $outpath/Sample${array[$i]%.fastq.gz}/NC_045512.2.fasta $outpath/Sample${array[$i]%.fastq.gz}/WuhanHu1.fasta
+	
+	echo -e  "${RED} Converting file fastq.gz in fastq ...please whait ${NC}"
+
+	gunzip $outpath/Sample${array[$i]%.fastq.gz}/${array[$i]}
+	gunzip $outpath/Sample${array[$i]%.fastq.gz}/${array[$i+1]}
+	
+	echo -e "${RED} Selecting SARS-CoV-2 reads ...please whait ${NC}"
+	bwa index -p WuhanHu1 $outpath/Sample${array[$i]%.fastq.gz}/WuhanHu1.fasta
+	bwa mem -t 12 -v 1 WuhanHu1 $outpath/Sample${array[$i]%.fastq.gz}/${array[$i]%.fastq.gz}.fastq $outpath/Sample${array[$i]%.fastq.gz}/${array[$i+1]%.fastq.gz}.fastq  > $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ON_WuhanHu1".sam
+
+	awk '$3 != "*" {print $0}' $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ON_WuhanHu1".sam > $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1".sam
+
+	samtools faidx $outpath/Sample${array[$i]%.fastq.gz}/WuhanHu1.fasta
+	
+	echo -e "${RED} Calculating coverage  ...please whait ${NC}"
+	samtools view -bS $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1".sam > $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1".bam
+
+	samtools sort $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1".bam >  $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".bam
+	
+	samtools index $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".bam
+
+	echo -e "${RED} Extracting all putative mutations ...please whait ${NC}"
+	samtools mpileup -d 1000000000 -f WuhanHu1.fasta $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".bam > $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".mpileup
+
+	echo -e "${RED} Generating consensus sequence ...please whait ${NC}"
+	$binpath/estrai_tabella_varianti_ECONSENSUSMANONquaispecie_da_mpileup_25ago.py -i $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".mpileup -o $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted_TutteVariantiPerProva".csv -f $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_ConsensusSequence.fasta" -n ${array[$i]%.bam} 
+
+	cat  $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_ConsensusSequence.fasta" >> $outpath/SARScov2consensusALL.fa
+
+
+	#rm IUPACfunc.py
+	#rm AmbiguityCodes.csv
+
+	# rm ${array[$i]}
+	rm $outpath/Sample${array[$i]%.fastq.gz}/${array[$i]%.fastq.gz}.fastq
+	rm $outpath/Sample${array[$i]%.fastq.gz}/${array[$i+1]%.fastq.gz}.fastq 
+	rm $outpath/Sample${array[$i]%.fastq.gz}/WuhanHu1.*
+	rm $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}.fastq
+	rm $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil".fastq
+	rm $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ON_WuhanHu1".sam
+	rm $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1".sam
+	rm $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1".bam
+	rm $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".bam.bai
+	rm $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".mpileup
+	mv $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted_TutteVariantiPerProva".csv  $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_CovarageTable".csv 
+	mv $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".bam $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_BamSorted".bam
+	# touch ${array[$i]}
+
+done 
+
+
+
+
+
+echo -e "${RED} Generating alignment of all consensus sequences and the mutations table ...please whait ${NC}"
+cat $refCov $outpath/SARScov2consensusALL.fa > $outpath/SARScov2consensusALLPlusRef.fa
+
+mafft --thread 12 --nomemsave $outpath/SARScov2consensusALLPlusRef.fa > $outpath/SARScov2consensusALLPlusRef.afa
+
+
+$binpath/crea_tabella_variantiNEW_ANCHEaminoacidi.py  -i $outpath/SARScov2consensusALLPlusRef.afa -o $outpath/MutationTableOf_SARScov2consensusALL.csv -r $refCov -a $binpath/NC_045512.2_AnnotationsMOD.csv
+
+cd $outpath
+
+rm $outpath/SARScov2consensusALL.fa
+rm $outpath/SARScov2consensusALLPlusRef.fa
+mv $outpath/SARScov2consensusALLPlusRef.afa $outpath/SARScov2consensusALLPlusRefaln.fa
+
+cd $cwd
+ 
+echo -e "${RED} ANALYSIS COMPLETED ! ${NC}"
+
+echo -e "${RED} Take a look in latest RESULTS folder ${NC}"
+
+

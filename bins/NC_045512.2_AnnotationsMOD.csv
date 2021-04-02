@@ -1,0 +1,15 @@
+Name	Type	Minimum	Maximum	Length	# Intervals
+3'UTR	3'UTR	29675	29903	229	1
+5'UTR	5'UTR	1	265	265	1
+ORF1a gene	gene	266	13468	13203	1
+ORF1b gene	gene	13468	21555	8088	1
+S gene	gene	21563	25384	3822	1
+ORF3a gene	gene	25393	26220	828	1
+E gene	gene	26245	26472	228	1
+M gene	gene	26523	27191	669	1
+ORF6 gene	gene	27202	27387	186	1
+ORF7a gene	gene	27394	27759	366	1
+ORF7b gene	gene	27756	27887	132	1
+ORF8 gene	gene	27894	28259	366	1
+N gene	gene	28274	29533	1260	1
+ORF10 gene	gene	29558	29674	117	1
