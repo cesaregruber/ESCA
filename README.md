@@ -21,7 +21,7 @@ However, we suggest to use the conda environment (available in the "INPUTDATA" d
       $bash ./ESCArun
 
 5) find the assembled SARS-CoV-2 genomes, aligned with Wuhan-Wu-1 reference genome,
-in the latest "REULTS" folder, with file name SARScov2consensusALLPlusRefaln.fa
+in the most recent "REULTS" folder, with file name SARScov2consensusALLPlusRefaln.fa
 
 # HINTS: 
 1) remember to delete all input files after the end of the analysis
