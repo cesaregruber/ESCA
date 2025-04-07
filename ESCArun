@@ -1,4 +1,4 @@
-#!/bin/bash
+
 
 RED='\033[0;31m' #rosso
 NC='\033[0m' # No Color
@@ -70,7 +70,7 @@ do
 	samtools mpileup -d 1000000000 -f WuhanHu1.fasta $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".bam > $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".mpileup
 
 	echo -e "${RED} Generating consensus sequence ...please whait ${NC}"
-	$binpath/estrai_tabella_varianti_ECONSENSUSMANONquaispecie_da_mpileup_25ago.py -i $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".mpileup -o $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted_TutteVariantiPerProva".csv -f $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_ConsensusSequence.fasta" -n ${array[$i]%.bam} 
+	python $binpath/estrai_tabella_varianti_ECONSENSUSMANONquaispecie_da_mpileup_25ago.py -i $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted".mpileup -o $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_QualFil_ONLY_WuhanHu1_Sorted_TutteVariantiPerProva".csv -f $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_ConsensusSequence.fasta" -n ${array[$i]%.bam} 
 
 	cat  $outpath/Sample${array[$i]%.fastq.gz}/Sample${array[$i]%.fastq.gz}"_ConsensusSequence.fasta" >> $outpath/SARScov2consensusALL.fa
 
@@ -105,7 +105,7 @@ cat $refCov $outpath/SARScov2consensusALL.fa > $outpath/SARScov2consensusALLPlus
 mafft --thread 12 --nomemsave $outpath/SARScov2consensusALLPlusRef.fa > $outpath/SARScov2consensusALLPlusRef.afa
 
 
-$binpath/crea_tabella_variantiNEW_ANCHEaminoacidi.py  -i $outpath/SARScov2consensusALLPlusRef.afa -o $outpath/MutationTableOf_SARScov2consensusALL.csv -r $refCov -a $binpath/NC_045512.2_AnnotationsMOD.csv
+python $binpath/crea_tabella_variantiNEW_ANCHEaminoacidi.py  -i $outpath/SARScov2consensusALLPlusRef.afa -o $outpath/MutationTableOf_SARScov2consensusALL.csv -r $refCov -a $binpath/NC_045512.2_AnnotationsMOD.csv
 
 cd $outpath
 
